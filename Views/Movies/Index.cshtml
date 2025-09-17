@@ -1,0 +1,99 @@
+﻿@model IEnumerable<ShowtimeWebApplication.Models.Movie>
+
+@{
+    ViewData["Title"] = "Movies";
+}
+
+<h1>Movies</h1>
+
+<!-- Filter and Sort -->
+<div style="margin-bottom: 20px;">
+    <form asp-action="Index" method="get">
+        <label>Genre: </label>
+        <select name="genreFilter" asp-items="ViewBag.Genres">
+            <option value="">All</option>
+        </select>
+        <button type="submit">Filter</button>
+        <a asp-action="Index">Clear</a>
+    </form>
+
+    <div style="margin-top: 10px;">
+        <a asp-action="Index" asp-route-sortOrder="title">A-Z</a> |
+        <a asp-action="Index" asp-route-sortOrder="title_desc">Z-A</a> |
+        <a asp-action="Index" asp-route-sortOrder="genre">Genre A-Z</a> |
+        <a asp-action="Index" asp-route-sortOrder="genre_desc">Genre Z-A</a>
+    </div>
+</div>
+
+@if (User.IsInRole("Admin"))
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Genre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Duration)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Showtimes)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Title)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Genre)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Duration)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Showtimes)
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <text>|</text>
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                        <text>|</text>
+                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    }
+                    else if (User.Identity.IsAuthenticated)
+                    {
+                        <text>|</text>
+                        <a asp-controller="Bookings" asp-action="Create" asp-route-movieId="@item.Id">Book</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

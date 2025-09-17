@@ -1,0 +1,52 @@
+﻿@model IEnumerable<ShowtimeWebApplication.Models.Booking>
+
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<h1>My Bookings</h1>
+
+<p>
+    <a asp-action="Create">Create New Booking</a>
+</p>
+
+@if (!Model.Any())
+{
+    <p>No bookings found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Movie</th>
+                <th>Cinema</th>
+                <th>Seat</th>
+                <th>Showtime</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(item.Movie?.Title ?? "N/A")</td>
+                    <td>@Html.DisplayFor(modelItem => item.Cinema)</td>
+                    <td>@Html.DisplayFor(modelItem => item.SeatNumber)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Showtime)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Price)</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div>
+    <a asp-controller="Movies" asp-action="Index">Back to Movies</a>
+</div>
