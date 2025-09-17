@@ -66,29 +66,54 @@ namespace ShowtimeWebApplication.Controllers
         }
 
         // GET: Bookings/Create
-        public async Task<IActionResult> CreateAsync(int? movieId)
+        public async Task<IActionResult> Create(int? movieId)
         {
-            var movies = await _context.Movies.ToListAsync();
-            ViewData["MovieId"] = new SelectList(movies, "Id", "Title", movieId);
-            return View();
+            if (movieId == null)
+            {
+                return NotFound();
+            }
+
+            var movie = await _context.Movies.FindAsync(movieId);
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            var booking = new Booking
+            {
+                MovieId = movieId.Value,
+                Price = movie.Price
+            };
+
+            ViewData["MovieDetails"] = movie;
+
+            ViewData["MovieId"] = new SelectList(_context.Movies, "Id", "Title", movieId);
+
+            return View(booking);
         }
 
         // POST: Bookings/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Cinema,SeatNumber,Showtime,Price,UserId,MovieId")] Booking booking)
+        public async Task<IActionResult> Create([Bind("Id,MovieId,Cinema,SeatNumber,Showtime,Price,UserId")] Booking booking)
         {
             if (ModelState.IsValid)
             {
                 booking.UserId = _userManager.GetUserId(User);
+
                 _context.Add(booking);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(MyBookings));
             }
-            var movies = await _context.Movies.ToListAsync();
-            ViewData["MovieId"] = new SelectList(movies, "Id", "Title", booking.MovieId);
+
+
+            var movie = await _context.Movies.FindAsync(booking.MovieId);
+            if (movie != null)
+            {
+                ViewData["MovieDetails"] = movie;
+            }
+
+            ViewData["MovieId"] = new SelectList(_context.Movies, "Id", "Title", booking.MovieId);
             return View(booking);
         }
 

@@ -23,14 +23,21 @@ namespace ShowtimeWebApplication.Controllers
 
         // GET: Movies
         [AllowAnonymous]//Allow visitor view the movie
-        public async Task<IActionResult> Index(string sortOrder, string genreFilter)
+        public async Task<IActionResult> Index(string sortOrder, string genreFilter, string searchString)
         {
             //View Data for order link
             ViewData["TitleSort"] = string.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
             ViewData["GenreSort"] = sortOrder == "genre" ? "genre_desc" : "genre";
             ViewData["CurrentFilter"] = genreFilter;
+            ViewData["SearchString"] = searchString;
 
             var movies = from m in _context.Movies select m;
+
+            // search filter
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                movies = movies.Where(m => m.Title.ToLower().Contains(searchString.ToLower()));
+            }
 
             // genre filter
             if (!string.IsNullOrEmpty(genreFilter) && Enum.TryParse<Genre>(genreFilter, out var genre))

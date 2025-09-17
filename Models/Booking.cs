@@ -15,11 +15,8 @@ namespace ShowtimeWebApplication.Models
         [RegularExpression(@"^[A-Z]\d{1,2}$", ErrorMessage = "Seat format must be like A1, B12, etc.")]
         public string SeatNumber { get; set; }
 
-        [Required(ErrorMessage = "Showtime is required")]
         public DateTime Showtime { get; set; }
 
-        [Required(ErrorMessage = "Price is required")]
-        [Range(0.01, 1000, ErrorMessage = "Price must be between 0.01 and 1000")]
         public decimal Price { get; set; }
 
         [Required]

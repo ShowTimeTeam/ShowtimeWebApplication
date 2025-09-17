@@ -1,56 +1,97 @@
 ﻿@model ShowtimeWebApplication.Models.Booking
+@using System.Text.Json
+@using ShowtimeWebApplication.Models
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Booking";
+    var movie = ViewData["MovieDetails"] as Movie;
+    var showtimes = new List<dynamic>();
+
+    if (!string.IsNullOrEmpty(movie?.Showtimes))
+    {
+        showtimes = JsonSerializer.Deserialize<List<dynamic>>(movie.Showtimes);
+    }
 }
 
-<h1>Create</h1>
+<h1>Create Booking for: @movie?.Title</h1>
 
-<h4>Booking</h4>
-<hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="MovieId" />
+
+            <!-- Movie Details -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Movie Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Title:</strong> @movie?.Title</p>
+                    <p><strong>Genre:</strong> @movie?.Genre</p>
+                    <p><strong>Duration:</strong> @movie?.Duration minutes</p>
+                    <p><strong>Description:</strong> @movie?.Description</p>
+                    <p><strong>Showtime:</strong> @movie?.Showtimes</p>
+                </div>
+            </div>
+
+            <!-- Showtimes -->
+            <div class="form-group">
+                <label class="control-label">Available Showtimes</label>
+                <select id="showtimeSelector" class="form-control">
+                    <option value="">Select a showtime</option>
+                    @foreach (var showtime in showtimes)
+                    {
+                        var dateTime = DateTime.Parse(showtime.GetProperty("DateTime").ToString());
+                        var cinema = showtime.GetProperty("Cinema").ToString();
+                        <option value="@dateTime.ToString("yyyy-MM-ddTHH:mm")" data-cinema="@cinema">
+                            @dateTime.ToString("g") - @cinema
+                        </option>
+                    }
+                </select>
+            </div>
+
             <div class="form-group">
                 <label asp-for="Cinema" class="control-label"></label>
-                <input asp-for="Cinema" class="form-control" />
+                <input asp-for="Cinema" class="form-control" id="cinemaField" readonly />
                 <span asp-validation-for="Cinema" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="SeatNumber" class="control-label"></label>
+                <label asp-for="Showtime" class="control-label"></label>
+                <input asp-for="Showtime" class="form-control" id="showtimeField" readonly />
+                <span asp-validation-for="Showtime" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="SeatNumber" class="control-label">Seat Number</label>
                 <input asp-for="SeatNumber" class="form-control" />
                 <span asp-validation-for="SeatNumber" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Showtime" class="control-label"></label>
-                <input asp-for="Showtime" class="form-control" />
-                <span asp-validation-for="Showtime" class="text-danger"></span>
-            </div>
+
             <div class="form-group">
                 <label asp-for="Price" class="control-label"></label>
-                <input asp-for="Price" class="form-control" />
+                <input asp-for="Price" class="form-control" readonly />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="MovieId" class="control-label"></label>
-                <select asp-for="MovieId" class ="form-control" asp-items="ViewBag.MovieId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Create Booking" class="btn btn-primary" />
+                <a asp-controller="Movies" asp-action="Index" class="btn btn-secondary">Back to Movies</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('showtimeSelector').addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                document.getElementById('showtimeField').value = selectedOption.value;
+                document.getElementById('cinemaField').value = selectedOption.getAttribute('data-cinema');
+            }
+        });
+    </script>
 }

@@ -26,7 +26,7 @@ namespace ShowtimeWebApplication.Models
         [Range(1, 300, ErrorMessage = "Duration must be between 1 and 300 minutes")]
         public int Duration { get; set; }
 
-        // Showtimes stored as JSON string or separate table
+        // Showtimes stored as JSON string 
         public string Showtimes { get; set; } // JSON format: [{"DateTime": "...", "Cinema": "...", "AvailableSeats": [...]}]
 
         public List<Booking> Bookings { get; set; } = new List<Booking>();
