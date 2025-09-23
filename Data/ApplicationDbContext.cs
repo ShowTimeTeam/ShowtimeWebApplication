@@ -4,7 +4,7 @@ using ShowtimeWebApplication.Models;
 
 namespace ShowtimeWebApplication.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -12,6 +12,7 @@ namespace ShowtimeWebApplication.Data
         }
         public DbSet<Movie> Movies { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public IEnumerable<object> ApplicationUsers { get; internal set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

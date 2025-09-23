@@ -128,20 +128,26 @@ namespace ShowtimeWebApplication.Controllers
             var booking = await _context.Bookings.FindAsync(id);
             if (booking == null) return NotFound();
 
-            // User only able to edit thier own bookings
-            if (booking.UserId != _userManager.GetUserId(User))
+            // User only able to edit thier own bookings,admin could edit all the bookings
+            if (booking.UserId != _userManager.GetUserId(User) && !User.IsInRole("Admin"))
             {
                 return Forbid();
             }
+            // For admin, show user dropdown with full names
+            if (User.IsInRole("Admin"))
+            {
+                var users = await _context.Users
+                    .Select(u => new { u.Id, u.FullName })
+                    .ToListAsync();
 
-            var movies = await _context.Movies.ToListAsync();
-            ViewData["MovieId"] = new SelectList(movies, "Id", "Title", booking.MovieId);
+                ViewBag.Users = new SelectList(users, "Id", "FullName", booking.UserId);
+            }
+
+            ViewData["MovieId"] = new SelectList(await _context.Movies.ToListAsync(), "Id", "Title", booking.MovieId);
             return View(booking);
         }
 
         // POST: Bookings/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Cinema,SeatNumber,Showtime,Price,UserId,MovieId")] Booking booking)
@@ -150,11 +156,29 @@ namespace ShowtimeWebApplication.Controllers
             {
                 return NotFound();
             }
-            //Check if it is the login user 
-            if (booking.UserId != _userManager.GetUserId(User))
+
+            // Get original booking to check permissions
+            var originalBooking = await _context.Bookings.AsNoTracking()
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (originalBooking == null)
+            {
+                return NotFound();
+            }
+
+            // Check if user can edit this booking
+            var currentUserId = _userManager.GetUserId(User);
+            if (originalBooking.UserId != currentUserId && !User.IsInRole("Admin"))
             {
                 return Forbid();
             }
+
+            // If not admin, keep the original UserId
+            if (!User.IsInRole("Admin"))
+            {
+                booking.UserId = originalBooking.UserId;
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -175,8 +199,20 @@ namespace ShowtimeWebApplication.Controllers
                 }
                 return RedirectToAction(nameof(MyBookings));
             }
+
+            // Reload view data if validation fails
             var movies = await _context.Movies.ToListAsync();
             ViewData["MovieId"] = new SelectList(movies, "Id", "Title", booking.MovieId);
+
+            if (User.IsInRole("Admin"))
+            {
+                ViewData["UserId"] = new SelectList(_context.Users.Select(u => new
+                {
+                    u.Id,
+                    DisplayName = u.UserName + " (" + u.Email + ")"
+                }), "Id", "DisplayName", booking.UserId);
+            }
+
             return View(booking);
         }
 
